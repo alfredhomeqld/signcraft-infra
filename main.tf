@@ -1,13 +1,13 @@
 terraform {
   required_providers {
-    # FIX: Corrected capitalization to NexGenCloud
+    # FIX: Explicitly tell OpenTofu where the Hyperstack plugin lives
     hyperstack = {
       source  = "NexGenCloud/hyperstack"
       version = "1.46.4-alpha" 
     }
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = "~> 1.58"
+      version = "1.58.0"
     }
   }
 }
@@ -23,10 +23,10 @@ provider "hcloud" {
 }
 
 provider "hyperstack" {
-  # This uses the HYPERSTACK_API_KEY from your Spacelift Context
+  # Spacelift uses your HYPERSTACK_API_KEY from the Context automatically
 }
 
-# 1. Your Hetzner Server (Permanent Office/Dashboard)
+# 1. Your Hetzner Server (The "Office")
 resource "hcloud_server" "main_server" {
   name        = "SignCraft-Main-Helsinki"
   server_type = "cx43"
@@ -38,7 +38,7 @@ resource "hcloud_server" "main_server" {
   }
 }
 
-# 2. Your AI Vision Engine (L40 GPU Muscle)
+# 2. Your AI Vision Engine (The "Muscle")
 resource "hyperstack_core_virtual_machine" "ai_vision" {
   name             = "signcraft-vision-l40"
   environment_name = "default-CANADA-1" 
@@ -47,7 +47,7 @@ resource "hyperstack_core_virtual_machine" "ai_vision" {
   key_name         = "signcraft-key"
   assign_floating_ip = true
 
-  # CRITICAL FIX: Stops the 'unknown value' bug from crashing your run
+  # FIX: Stops the crash by telling OpenTofu NOT to double-check the server details
   lifecycle {
     ignore_changes = all
   }
