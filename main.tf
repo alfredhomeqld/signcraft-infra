@@ -1,10 +1,11 @@
 terraform {
   required_providers {
-    # Fix: Pointing directly to the Terraform Registry for OpenTofu compatibility
+    # Provider for your AI GPU (Canada)
     hyperstack = {
       source  = "registry.terraform.io/NexGenCloud/hyperstack"
       version = "1.46.4-alpha" 
     }
+    # Provider for your Main Server (Helsinki)
     hcloud = {
       source  = "registry.terraform.io/hetznercloud/hcloud"
       version = "~> 1.45"
@@ -12,6 +13,7 @@ terraform {
   }
 }
 
+# Variable for Hetzner Auth
 variable "hcloud_token" {
   type      = string
   sensitive = true
@@ -21,9 +23,11 @@ provider "hcloud" {
   token = var.hcloud_token
 }
 
-provider "hyperstack" {}
+provider "hyperstack" {
+  # Uses HYPERSTACK_API_KEY from your Spacelift Context
+}
 
-# Your Hetzner CX43 Server
+# 1. Your Hetzner Server (The "Office")
 resource "hcloud_server" "main_server" {
   name        = "SignCraft-Main-Helsinki"
   server_type = "cx43"
@@ -35,12 +39,17 @@ resource "hcloud_server" "main_server" {
   }
 }
 
-# Your AI Engine (L40 GPU)
+# 2. Your AI Vision Engine (The "Muscle")
 resource "hyperstack_core_virtual_machine" "ai_vision" {
   name             = "signcraft-vision-l40"
   environment_name = "default-CANADA-1" 
   flavor_name      = "n3-L40x1"         
   image_name       = "Ubuntu Server 22.04 LTS R535 CUDA 12.2"
-  key_name         = "signcraft-key"    # Replace with your actual SSH key name
+  key_name         = "signcraft-key"
   assign_floating_ip = true
+
+  # FIX: Tells OpenTofu to ignore the bug-prone 'user_data' field
+  lifecycle {
+    ignore_changes = [user_data]
+  }
 }
