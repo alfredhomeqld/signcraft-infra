@@ -1,3 +1,45 @@
+terraform {
+  required_providers {
+    # 1. FIX: Tells Spacelift exactly where to find the Hyperstack plugin
+    hyperstack = {
+      source  = "NexGenCloud/hyperstack"
+      version = "1.46.4-alpha" 
+    }
+    # 2. Your Hetzner plugin
+    hcloud = {
+      source  = "hetznercloud/hcloud"
+      version = "~> 1.45"
+    }
+  }
+}
+
+# Variable for Hetzner Auth
+variable "hcloud_token" {
+  type      = string
+  sensitive = true
+}
+
+provider "hcloud" {
+  token = var.hcloud_token
+}
+
+provider "hyperstack" {
+  # This uses the HYPERSTACK_API_KEY from your Spacelift Context
+}
+
+# 3. Your Hetzner Server (The "Office")
+resource "hcloud_server" "main_server" {
+  name        = "SignCraft-Main-Helsinki"
+  server_type = "cx43"
+  image       = "ubuntu-22.04"
+  location    = "hel1"
+  public_net {
+    ipv4_enabled = true
+    ipv6_enabled = true
+  }
+}
+
+# 4. Your AI Vision Engine (The "Muscle")
 resource "hyperstack_core_virtual_machine" "ai_vision" {
   name             = "signcraft-vision-l40"
   environment_name = "default-CANADA-1" 
@@ -6,8 +48,8 @@ resource "hyperstack_core_virtual_machine" "ai_vision" {
   key_name         = "signcraft-key"
   assign_floating_ip = true
 
+  # CRITICAL FIX: Stops the 'unknown value' bug from crashing your run
   lifecycle {
-    # This prevents the provider from crashing after creation
     ignore_changes = all
   }
 }
