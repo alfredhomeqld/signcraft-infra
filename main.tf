@@ -1,11 +1,9 @@
 terraform {
   required_providers {
-    # Provider for your AI GPU (Canada)
     hyperstack = {
       source  = "registry.terraform.io/NexGenCloud/hyperstack"
       version = "1.46.4-alpha" 
     }
-    # Provider for your Main Server (Helsinki)
     hcloud = {
       source  = "registry.terraform.io/hetznercloud/hcloud"
       version = "~> 1.45"
@@ -13,7 +11,6 @@ terraform {
   }
 }
 
-# Variable for Hetzner Auth
 variable "hcloud_token" {
   type      = string
   sensitive = true
@@ -23,11 +20,8 @@ provider "hcloud" {
   token = var.hcloud_token
 }
 
-provider "hyperstack" {
-  # Uses HYPERSTACK_API_KEY from your Spacelift Context
-}
+provider "hyperstack" {}
 
-# 1. Your Hetzner Server (Permanent Office)
 resource "hcloud_server" "main_server" {
   name        = "SignCraft-Main-Helsinki"
   server_type = "cx43"
@@ -39,7 +33,6 @@ resource "hcloud_server" "main_server" {
   }
 }
 
-# 2. Your AI Vision Engine (L40 GPU Muscle)
 resource "hyperstack_core_virtual_machine" "ai_vision" {
   name             = "signcraft-vision-l40"
   environment_name = "default-CANADA-1" 
@@ -48,8 +41,9 @@ resource "hyperstack_core_virtual_machine" "ai_vision" {
   key_name         = "signcraft-key"
   assign_floating_ip = true
 
-  # CRITICAL FIX: This stops the provider from crashing on the 'user_data' bug
   lifecycle {
-    ignore_changes = [user_data]
+    # This is the 'Nuclear Option' to stop the crash. 
+    # It tells Spacelift: "Just build it and leave it alone."
+    ignore_changes = all
   }
 }
