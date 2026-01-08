@@ -27,7 +27,7 @@ provider "hyperstack" {
   # Uses HYPERSTACK_API_KEY from your Spacelift Context
 }
 
-# 1. Your Hetzner Server (The "Office")
+# 1. Your Hetzner Server (Permanent Office)
 resource "hcloud_server" "main_server" {
   name        = "SignCraft-Main-Helsinki"
   server_type = "cx43"
@@ -39,7 +39,7 @@ resource "hcloud_server" "main_server" {
   }
 }
 
-# 2. Your AI Vision Engine (The "Muscle")
+# 2. Your AI Vision Engine (L40 GPU Muscle)
 resource "hyperstack_core_virtual_machine" "ai_vision" {
   name             = "signcraft-vision-l40"
   environment_name = "default-CANADA-1" 
@@ -48,7 +48,7 @@ resource "hyperstack_core_virtual_machine" "ai_vision" {
   key_name         = "signcraft-key"
   assign_floating_ip = true
 
-  # FIX: Tells OpenTofu to ignore the bug-prone 'user_data' field
+  # CRITICAL FIX: This stops the provider from crashing on the 'user_data' bug
   lifecycle {
     ignore_changes = [user_data]
   }
